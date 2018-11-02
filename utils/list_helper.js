@@ -21,7 +21,7 @@ const mostBlogs = (blogs) => {
       return result
     }, {})
     const reducer = (previous, current) => {
-      return (previous.value > current.value) ? previous : current
+      return (previous[1] > current[1]) ? previous : current
     }
     const most = Object.entries(totalBlogsByAuthor).reduce(reducer)
     var output = {
@@ -32,8 +32,29 @@ const mostBlogs = (blogs) => {
   }
 }
 
+const mostLikes = (blogs) => {
+  if (blogs.length === 0) {
+    return {}
+  } else {
+    const totalLikesByAuthor = blogs.reduce((result, item) => {
+      result[item.author] = (result[item.author] || 0) + Number(item.likes)
+      return result
+    }, {})
+    const reducer = (previous, current) => {
+      return (previous[1] > current[1]) ? previous : current
+    }
+    const most = Object.entries(totalLikesByAuthor).reduce(reducer, {})
+    var output = {
+      author: most[0],
+      likes: most[1]
+    }
+    return output
+  }
+}
+
 module.exports = {
   totalLikes,
   favoriteBlog,
-  mostBlogs
+  mostBlogs,
+  mostLikes
 }
