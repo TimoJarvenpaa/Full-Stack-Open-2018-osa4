@@ -152,6 +152,96 @@ describe('deletion of a blog', async () => {
   })
 })
 
+describe('updating a blog', async () => {
+  let addedBlog
+
+  beforeAll(async () => {
+    addedBlog = new Blog({
+      title: 'To be updated',
+      author: 'test',
+      url: '200',
+      likes: 2
+    })
+    await addedBlog.save()
+  })
+
+  test('PUT /api/blogs/:id succeeds with valid id', async () => {
+    const blogsAtStart = await blogsInDb()
+
+    const updatedBlog = {
+      title: 'Update was successful',
+      author: 'test',
+      url: '200',
+      likes: 12
+    }
+
+    const response = await api
+      .put(`/api/blogs/${addedBlog._id}`)
+      .send(updatedBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    const blogsAfterOperation = await blogsInDb()
+
+    const titles = blogsAfterOperation.map(b => b.title)
+
+    expect(response.body.likes).toBe(12)
+    expect(titles).not.toContain(addedBlog.title)
+    expect(titles).toContain(updatedBlog.title)
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length)
+  })
+
+  test('404 is returned by PUT /api/blogs/:id with valid nonexistent id', async () => {
+    const blogsAtStart = await blogsInDb()
+
+    const validNonexistingId = await nonExistingId()
+
+    const updatedBlog = {
+      title: 'Nonexistent id',
+      author: 'test',
+      url: '200',
+      likes: 12
+    }
+
+    await api
+      .put(`/api/blogs/${validNonexistingId}`)
+      .send(updatedBlog)
+      .expect(404)
+
+    const blogsAfterOperation = await blogsInDb()
+
+    const titles = blogsAfterOperation.map(b => b.title)
+
+    expect(titles).not.toContain(updatedBlog.title)
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length)
+  })
+
+  test('400 is returned by PUT /api/blogs/:id with invalid id', async () => {
+    const blogsAtStart = await blogsInDb()
+
+    const invalidId = '5a3d5da59070081a82a3445'
+
+    const updatedBlog = {
+      title: 'Invalid id',
+      author: 'test',
+      url: '200',
+      likes: 12
+    }
+
+    await api
+      .put(`/api/blogs/${invalidId}`)
+      .send(updatedBlog)
+      .expect(400)
+
+    const blogsAfterOperation = await blogsInDb()
+
+    const titles = blogsAfterOperation.map(b => b.title)
+
+    expect(titles).not.toContain(updatedBlog.title)
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length)
+  })
+})
+
 afterAll(() => {
   server.close()
 })

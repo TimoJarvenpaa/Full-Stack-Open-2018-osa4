@@ -47,7 +47,36 @@ blogsRouter.delete('/:id', async (request, response) => {
     response.status(204).end()
   } catch (exception) {
     console.log(exception)
-    response.status(400).send({ error: 'malformed id' })
+    response.status(400).send({
+      error: 'malformed id'
+    })
+  }
+})
+
+blogsRouter.put('/:id', async (request, response) => {
+  try {
+    const body = request.body
+
+    const blog = {
+      title: body.title,
+      author: body.author,
+      url: body.url,
+      likes: body.likes
+    }
+
+    const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, {
+      new: true
+    })
+    if (updatedBlog) {
+      response.status(200).json(updatedBlog)
+    } else {
+      response.status(404).end()
+    }
+  } catch (exception) {
+    console.log(exception)
+    response.status(400).send({
+      error: 'malformed id'
+    })
   }
 })
 
