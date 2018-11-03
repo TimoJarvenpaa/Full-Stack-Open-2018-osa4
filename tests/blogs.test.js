@@ -59,100 +59,102 @@ const listWithMultipleBlogs = [{
 }
 ]
 
-describe('total likes', () => {
+describe.skip('list helpers', () => {
+  describe('total likes', () => {
 
-  test('of an empty list is zero', () => {
-    const result = listHelper.totalLikes([])
-    expect(result).toBe(0)
-  })
+    test('of an empty list is zero', () => {
+      const result = listHelper.totalLikes([])
+      expect(result).toBe(0)
+    })
 
-  test('of a list with only one blog is calculated correctly', () => {
-    const result = listHelper.totalLikes(listWithOneBlog)
-    expect(result).toBe(5)
-  })
+    test('of a list with only one blog is calculated correctly', () => {
+      const result = listHelper.totalLikes(listWithOneBlog)
+      expect(result).toBe(5)
+    })
 
-  test('of a bigger list is calculated correctly', () => {
-    const result = listHelper.totalLikes(listWithMultipleBlogs)
-    expect(result).toBe(36)
-  })
-})
-
-describe('favorite blog', () => {
-
-  test('of an empty list is an empty object', () => {
-    const result = listHelper.favoriteBlog([])
-    expect(result).toEqual({})
-  })
-
-  test('of a list with only one blog is returned correctly', () => {
-    const result = listHelper.favoriteBlog(listWithOneBlog)
-    expect(result).toEqual({
-      _id: '5a422aa71b54a676234d17f8',
-      title: 'Go To Statement Considered Harmful',
-      author: 'Edsger W. Dijkstra',
-      url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
-      likes: 5,
-      __v: 0
+    test('of a bigger list is calculated correctly', () => {
+      const result = listHelper.totalLikes(listWithMultipleBlogs)
+      expect(result).toBe(36)
     })
   })
 
-  test('of a bigger list is returned correctly', () => {
-    const result = listHelper.favoriteBlog(listWithMultipleBlogs)
-    expect(result).toEqual({
-      _id: '5a422b3a1b54a676234d17f9',
-      title: 'Canonical string reduction',
-      author: 'Edsger W. Dijkstra',
-      url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
-      likes: 12,
-      __v: 0
+  describe('favorite blog', () => {
+
+    test('of an empty list is an empty object', () => {
+      const result = listHelper.favoriteBlog([])
+      expect(result).toEqual({})
     })
-  })
-})
 
-describe('author with the most blogs', () => {
-
-  test('in an empty list is an empty object', () => {
-    const result = listHelper.mostBlogs([])
-    expect(result).toEqual({})
-  })
-
-  test('in a list with one only blog is returned correctly', () => {
-    const result = listHelper.mostBlogs(listWithOneBlog)
-    expect(result).toEqual({
-      author: 'Edsger W. Dijkstra',
-      blogs: 1
+    test('of a list with only one blog is returned correctly', () => {
+      const result = listHelper.favoriteBlog(listWithOneBlog)
+      expect(result).toEqual({
+        _id: '5a422aa71b54a676234d17f8',
+        title: 'Go To Statement Considered Harmful',
+        author: 'Edsger W. Dijkstra',
+        url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
+        likes: 5,
+        __v: 0
+      })
     })
-  })
 
-  test('in a list with multiple blogs is returned correctly', () => {
-    const result = listHelper.mostBlogs(listWithMultipleBlogs)
-    expect(result).toEqual({
-      author: 'Robert C. Martin',
-      blogs: 3
-    })
-  })
-})
-
-describe('author with the most likes', () => {
-
-  test('in an empty list is an empty object', () => {
-    const result = listHelper.mostLikes([])
-    expect(result).toEqual({})
-  })
-
-  test('in a list with one only blog is returned correctly', () => {
-    const result = listHelper.mostLikes(listWithOneBlog)
-    expect(result).toEqual({
-      author: 'Edsger W. Dijkstra',
-      likes: 5
+    test('of a bigger list is returned correctly', () => {
+      const result = listHelper.favoriteBlog(listWithMultipleBlogs)
+      expect(result).toEqual({
+        _id: '5a422b3a1b54a676234d17f9',
+        title: 'Canonical string reduction',
+        author: 'Edsger W. Dijkstra',
+        url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
+        likes: 12,
+        __v: 0
+      })
     })
   })
 
-  test('in a list with multiple blogs is returned correctly', () => {
-    const result = listHelper.mostLikes(listWithMultipleBlogs)
-    expect(result).toEqual({
-      author: 'Edsger W. Dijkstra',
-      likes: 17
+  describe('author with the most blogs', () => {
+
+    test('in an empty list is an empty object', () => {
+      const result = listHelper.mostBlogs([])
+      expect(result).toEqual({})
+    })
+
+    test('in a list with one only blog is returned correctly', () => {
+      const result = listHelper.mostBlogs(listWithOneBlog)
+      expect(result).toEqual({
+        author: 'Edsger W. Dijkstra',
+        blogs: 1
+      })
+    })
+
+    test('in a list with multiple blogs is returned correctly', () => {
+      const result = listHelper.mostBlogs(listWithMultipleBlogs)
+      expect(result).toEqual({
+        author: 'Robert C. Martin',
+        blogs: 3
+      })
+    })
+  })
+
+  describe('author with the most likes', () => {
+
+    test('in an empty list is an empty object', () => {
+      const result = listHelper.mostLikes([])
+      expect(result).toEqual({})
+    })
+
+    test('in a list with one only blog is returned correctly', () => {
+      const result = listHelper.mostLikes(listWithOneBlog)
+      expect(result).toEqual({
+        author: 'Edsger W. Dijkstra',
+        likes: 5
+      })
+    })
+
+    test('in a list with multiple blogs is returned correctly', () => {
+      const result = listHelper.mostLikes(listWithMultipleBlogs)
+      expect(result).toEqual({
+        author: 'Edsger W. Dijkstra',
+        likes: 17
+      })
     })
   })
 })
