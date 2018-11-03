@@ -117,6 +117,22 @@ describe('/api/blogs HTTP POST tests', () => {
 
     expect(response.body.length).toBe(intialNotes.body.length)
   })
+
+  test('a blog without likes is added with 0 likes', async () => {
+    const newBlog = {
+      title: 'TDD harms architecture',
+      author: 'Robert C. Martin',
+      url: 'http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html'
+    }
+
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    expect(response.body.likes).toBe(0)
+  })
 })
 
 
