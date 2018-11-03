@@ -48,7 +48,7 @@ beforeAll(async () => {
   await Promise.all(promiseArray)
 })
 
-describe('/api/blogs HTTP GET', () => {
+describe('/api/blogs HTTP GET tests', () => {
   test('blogs are returned as json', async () => {
     await api
       .get('/api/blogs')
@@ -72,6 +72,53 @@ describe('/api/blogs HTTP GET', () => {
     expect(titles).toContain('First class tests')
   })
 })
+
+describe('/api/blogs HTTP POST tests', () => {
+  test('a valid blog can be added ', async () => {
+    const newBlog = {
+      title: 'Type wars',
+      author: 'Robert C. Martin',
+      url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html',
+      likes: 2
+    }
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    const response = await api
+      .get('/api/blogs')
+
+    const titles = response.body.map(r => r.title)
+
+    expect(response.body.length).toBe(initialBlogs.length + 1)
+    expect(titles).toContain('Type wars')
+  })
+
+  test('a blog without a title is not added', async () => {
+    const newBlog = {
+      author: 'somebody',
+      url: 'example.com',
+      likes: 2
+    }
+
+    const intialNotes = await api
+      .get('/api/blogs')
+
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+
+    const response = await api
+      .get('/api/blogs')
+
+    expect(response.body.length).toBe(intialNotes.body.length)
+  })
+})
+
 
 afterAll(() => {
   server.close()
