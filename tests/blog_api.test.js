@@ -6,7 +6,6 @@ const {
 const api = supertest(app)
 const Blog = require('../models/blog')
 const {
-  format,
   initialBlogs,
   nonExistingId,
   blogsInDb
@@ -121,6 +120,35 @@ describe('addition of a new blog', () => {
     const blogsAfterOperation = await blogsInDb()
 
     expect(blogsAfterOperation.length).toBe(blogsAtStart.length)
+  })
+})
+
+describe('deletion of a blog', async () => {
+  let addedBlog
+
+  beforeAll(async () => {
+    addedBlog = new Blog({
+      title: 'To be removed',
+      author: 'test',
+      url: '404',
+      likes: 2
+    })
+    await addedBlog.save()
+  })
+
+  test('DELETE /api/blogs/:id succeeds', async () => {
+    const blogsAtStart = await blogsInDb()
+
+    await api
+      .delete(`/api/blogs/${addedBlog._id}`)
+      .expect(204)
+
+    const blogsAfterOperation = await blogsInDb()
+
+    const titles = blogsAfterOperation.map(b => b.title)
+
+    expect(titles).not.toContain(addedBlog.title)
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length - 1)
   })
 })
 
