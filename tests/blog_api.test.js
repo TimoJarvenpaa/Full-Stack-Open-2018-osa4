@@ -5,76 +5,46 @@ const {
 } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
+const {
+  format,
+  initialBlogs,
+  nonExistingId,
+  blogsInDb
+} = require('./test_helper')
 
-const initialBlogs = [{
-  _id: '5a422a851b54a676234d17f7',
-  title: 'React patterns',
-  author: 'Michael Chan',
-  url: 'https://reactpatterns.com/',
-  likes: 7,
-  __v: 0
-},
-{
-  _id: '5a422aa71b54a676234d17f8',
-  title: 'Go To Statement Considered Harmful',
-  author: 'Edsger W. Dijkstra',
-  url: 'http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html',
-  likes: 5,
-  __v: 0
-},
-{
-  _id: '5a422b3a1b54a676234d17f9',
-  title: 'Canonical string reduction',
-  author: 'Edsger W. Dijkstra',
-  url: 'http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html',
-  likes: 12,
-  __v: 0
-},
-{
-  _id: '5a422b891b54a676234d17fa',
-  title: 'First class tests',
-  author: 'Robert C. Martin',
-  url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll',
-  likes: 10,
-  __v: 0
-}
-]
+describe('when there are some blogs saved already', () => {
 
-beforeAll(async () => {
-  await Blog.deleteMany({})
+  beforeAll(async () => {
+    await Blog.deleteMany({})
 
-  const blogObjects = initialBlogs.map(blog => new Blog(blog))
-  const promiseArray = blogObjects.map(blog => blog.save())
-  await Promise.all(promiseArray)
-})
+    const blogObjects = initialBlogs.map(blog => new Blog(blog))
+    const promiseArray = blogObjects.map(blog => blog.save())
+    await Promise.all(promiseArray)
+  })
 
-describe('/api/blogs HTTP GET tests', () => {
-  test('blogs are returned as json', async () => {
-    await api
+
+  test('all blogs are returned as json by GET /api/blogs', async () => {
+    const blogsInDatabase = await blogsInDb()
+
+    const response = await api
       .get('/api/blogs')
       .expect(200)
       .expect('Content-Type', /application\/json/)
-  })
 
-  test('all blogs are returned', async () => {
-    const response = await api
-      .get('/api/blogs')
+    expect(response.body.length).toBe(blogsInDatabase.length)
 
-    expect(response.body.length).toBe(initialBlogs.length)
-  })
-
-  test('a specific blog is within the returned blogs', async () => {
-    const response = await api
-      .get('/api/blogs')
-
-    const titles = response.body.map(r => r.title)
-
-    expect(titles).toContain('First class tests')
+    const returnedTitles = response.body.map(b => b.title)
+    blogsInDatabase.forEach(blog => {
+      expect(returnedTitles).toContain(blog.title)
+    })
   })
 })
 
-describe('/api/blogs HTTP POST tests', () => {
-  test('a valid blog can be added ', async () => {
+describe('addition of a new blog', () => {
+
+  test('POST /api/blogs succeeds with valid data', async () => {
+    const blogsAtStart = await blogsInDb()
+
     const newBlog = {
       title: 'Type wars',
       author: 'Robert C. Martin',
@@ -85,77 +55,74 @@ describe('/api/blogs HTTP POST tests', () => {
     await api
       .post('/api/blogs')
       .send(newBlog)
-      .expect(200)
+      .expect(201)
       .expect('Content-Type', /application\/json/)
 
-    const response = await api
-      .get('/api/blogs')
+    const blogsAfterOperation = await blogsInDb()
 
-    const titles = response.body.map(r => r.title)
-
-    expect(response.body.length).toBe(initialBlogs.length + 1)
-    expect(titles).toContain('Type wars')
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length + 1)
+    expect(blogsAfterOperation).toContainEqual(newBlog)
   })
 
-  test('a blog without a title is not added', async () => {
+  test('POST /api/blogs fails if title is missing', async () => {
     const newBlog = {
       author: 'somebody',
       url: 'example.com',
       likes: 2
     }
 
-    const intialNotes = await api
-      .get('/api/blogs')
+    const blogsAtStart = await blogsInDb()
 
     await api
       .post('/api/blogs')
       .send(newBlog)
       .expect(400)
 
-    const response = await api
-      .get('/api/blogs')
+    const blogsAfterOperation = await blogsInDb()
 
-    expect(response.body.length).toBe(intialNotes.body.length)
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length)
   })
 
-  test('a blog without likes is added with 0 likes', async () => {
+  test('a blog with missing likes is added with 0 likes', async () => {
     const newBlog = {
       title: 'TDD harms architecture',
       author: 'Robert C. Martin',
       url: 'http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html'
     }
 
+    const blogsAtStart = await blogsInDb()
+
     const response = await api
       .post('/api/blogs')
       .send(newBlog)
-      .expect(200)
+      .expect(201)
       .expect('Content-Type', /application\/json/)
 
+    const blogsAfterOperation = await blogsInDb()
+
     expect(response.body.likes).toBe(0)
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length + 1)
   })
 
-  test('a blog without an url is not added', async () => {
+  test('POST /api/blogs fails if url is missing', async () => {
     const newBlog = {
       title: 'A blog without an url',
       author: 'Unknown',
       likes: 1
     }
 
-    const intialNotes = await api
-      .get('/api/blogs')
+    const blogsAtStart = await blogsInDb()
 
     await api
       .post('/api/blogs')
       .send(newBlog)
       .expect(400)
 
-    const response = await api
-      .get('/api/blogs')
+    const blogsAfterOperation = await blogsInDb()
 
-    expect(response.body.length).toBe(intialNotes.body.length)
+    expect(blogsAfterOperation.length).toBe(blogsAtStart.length)
   })
 })
-
 
 afterAll(() => {
   server.close()
