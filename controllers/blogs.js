@@ -72,14 +72,34 @@ blogsRouter.post('/', async (request, response) => {
 
 blogsRouter.delete('/:id', async (request, response) => {
   try {
-    await Blog.findByIdAndDelete(request.params.id)
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
-    response.status(204).end()
+    if (!request.token || !decodedToken.id) {
+      return response.status(401).json({
+        error: 'token missing or invalid'
+      })
+    }
+
+    const blog = await Blog.findById(request.params.id)
+
+    if (blog.user._id.toString() === decodedToken.id.toString()) {
+      await Blog.findByIdAndDelete(request.params.id)
+
+      response.status(204).end()
+    } else {
+      response.status(401).json({ error: 'only the user who posted the blog has the permission to delete it' })
+    }
   } catch (exception) {
-    console.log(exception)
-    response.status(400).send({
-      error: 'malformed id'
-    })
+    if (exception.name === 'JsonWebTokenError') {
+      response.status(401).json({
+        error: exception.message
+      })
+    } else {
+      console.log(exception)
+      response.status(400).send({
+        error: 'malformed id'
+      })
+    }
   }
 })
 
