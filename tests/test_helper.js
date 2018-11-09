@@ -53,9 +53,25 @@ const usersInDb = async () => {
   return users
 }
 
+const getTestUser = async () => {
+  const user = await User.findOne({ username: 'TestUser' })
+  return user
+}
+
+const createInitialUser = async () => {
+  await User.deleteMany({})
+  const user = new User({
+    username: 'TestUser',
+    password: 'sekret'
+  })
+  await user.save()
+}
+
 module.exports = {
   initialBlogs,
   nonExistingId,
   blogsInDb,
-  usersInDb
+  usersInDb,
+  createInitialUser,
+  getTestUser
 }

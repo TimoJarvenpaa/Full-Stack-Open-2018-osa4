@@ -5,12 +5,13 @@ const {
 } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
-const User = require('../models/user')
 const {
   initialBlogs,
   nonExistingId,
   blogsInDb,
-  usersInDb
+  usersInDb,
+  createInitialUser,
+  getTestUser
 } = require('./test_helper')
 
 describe('when there are some blogs saved already', () => {
@@ -21,6 +22,8 @@ describe('when there are some blogs saved already', () => {
     const blogObjects = initialBlogs.map(blog => new Blog(blog))
     const promiseArray = blogObjects.map(blog => blog.save())
     await Promise.all(promiseArray)
+
+    await createInitialUser()
   })
 
 
@@ -45,12 +48,14 @@ describe('addition of a new blog', () => {
 
   test('POST /api/blogs succeeds with valid data', async () => {
     const blogsAtStart = await blogsInDb()
+    const user = await getTestUser()
 
     const newBlog = {
       title: 'Type wars',
       author: 'Robert C. Martin',
       url: 'http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html',
-      likes: 2
+      likes: 2,
+      user: user._id
     }
 
     await api
@@ -246,12 +251,7 @@ describe('updating a blog', async () => {
 
 describe('when there is initially one user at db', async () => {
   beforeAll(async () => {
-    await User.remove({})
-    const user = new User({
-      username: 'root',
-      password: 'sekret'
-    })
-    await user.save()
+    await createInitialUser()
   })
 
   test('POST /api/users succeeds with a fresh username', async () => {
@@ -279,7 +279,7 @@ describe('when there is initially one user at db', async () => {
     const usersBeforeOperation = await usersInDb()
 
     const newUser = {
-      username: 'root',
+      username: 'TestUser',
       name: 'Superuser',
       password: 'salainen'
     }
