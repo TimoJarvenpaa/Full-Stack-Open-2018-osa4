@@ -1,5 +1,6 @@
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
+const mongoose = require('mongoose')
 
 blogsRouter.get('/', async (request, response) => {
   try {
@@ -12,7 +13,6 @@ blogsRouter.get('/', async (request, response) => {
     })
   }
 })
-
 
 blogsRouter.post('/', async (request, response) => {
   try {
@@ -62,6 +62,12 @@ blogsRouter.put('/:id', async (request, response) => {
       author: body.author,
       url: body.url,
       likes: body.likes
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(request.params.id)) {
+      return response.status(400).send({
+        error: 'invalid id'
+      })
     }
 
     const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, {
